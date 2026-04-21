@@ -11,9 +11,9 @@ I was reading their fascinating paper, noticed the Factor Analysis pipeline in t
 
 ### Overview
 
-`betterSNO` is an experimental, high-performance PyTorch/CUDA port of the SNOPS algorithm. It simulates large-scale Exponential Integrate-and-Fire (EIF) spiking networks and uses Bayesian optimization (Optuna) to fit network parameters (like connection strengths and decay times) to target biological Population Statistics, such as Firing Rate, Coefficient of Variation (CV), and Factor Analysis (FA) shared variance metrics.
+`fasterSNO` is an experimental, high-performance PyTorch/CUDA port of the SNOPS algorithm. It simulates large-scale Exponential Integrate-and-Fire (EIF) spiking networks and uses Bayesian optimization (Optuna) to fit network parameters (like connection strengths and decay times) to target biological Population Statistics, such as Firing Rate, Coefficient of Variation (CV), and Factor Analysis (FA) shared variance metrics.
 
-By moving both the sparse neural integration and the Expectation-Maximization (EM) Factor Analysis algorithms entirely into custom C++/CUDA kernels, `betterSNO` eliminates CPU-GPU data transfer bottlenecks. It achieves a 3x to 5x speedup over the original CPU-bound FA pipeline, allowing a 10-biological-second simulation and 5-fold cross-validated FA to run in roughly ~18 seconds on a 6GB VRAM GPU.
+By moving both the sparse neural integration and the Expectation-Maximization (EM) Factor Analysis algorithms entirely into custom C++/CUDA kernels, `fasterSNO` eliminates CPU-GPU data transfer bottlenecks. It achieves a 3x to 5x speedup over the original CPU-bound FA pipeline, allowing a 10-biological-second simulation and 5-fold cross-validated FA to run in roughly ~18 seconds on a 6GB VRAM GPU.
 
 ### Prerequisites
 
