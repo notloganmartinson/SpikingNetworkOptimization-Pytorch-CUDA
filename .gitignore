@@ -1,0 +1,20 @@
+# Python environments and cache
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Optuna Database files (these get massive over 25 hours)
+*.db
+*.sqlite
+*.sqlite3
+
+# Temporary PyTorch C++ compilation files
+tmp/
+
+# (Optional) You can choose to ignore output images/texts if you don't want to commit them
+*raster.png
+*report.txt
+# Background Logs
+*.log

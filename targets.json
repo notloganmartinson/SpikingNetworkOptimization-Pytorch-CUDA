@@ -1,0 +1,18 @@
+{
+  "experiment_name": "V4_Monkey_Visual_Cortex",
+  "targets": {
+    "rate": 5.4,
+    "cv": 0.8,
+    "pshared": 0.1,
+    "dshared": 5.0,
+    "mean_corr": 0.05
+  },
+  "weights": {
+    "rate": 1.0,
+    "cv": 100.0,
+    "pshared": 1000.0,
+    "dshared": 10.0,
+    "mean_corr": 10000.0
+  },
+  "rate_bounds": [0.5, 60.0]
+}
