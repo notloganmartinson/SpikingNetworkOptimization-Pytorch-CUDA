@@ -11,9 +11,14 @@ I was reading their fascinating paper, noticed the Factor Analysis pipeline in t
 
 ### Overview
 
-`fasterSNO` is an experimental, high-performance PyTorch/CUDA port of the SNOPS algorithm. It simulates large-scale Exponential Integrate-and-Fire (EIF) spiking networks and uses Bayesian optimization (Optuna) to fit network parameters (like connection strengths and decay times) to target biological Population Statistics, such as Firing Rate, Coefficient of Variation (CV), and Factor Analysis (FA) shared variance metrics.
+`FasterSNO` is a high-performance PyTorch/CUDA port of the SNOPS algorithm. It simulates large-scale **Spatial Balanced Networks (SBN)** using Exponential Integrate-and-Fire (EIF) neurons and uses Bayesian optimization (Optuna) to fit network parameters to target biological Population Statistics, such as Firing Rate, Coefficient of Variation (CV), and Factor Analysis (FA) shared variance metrics.
 
-By moving both the sparse neural integration and the Expectation-Maximization (EM) Factor Analysis algorithms entirely into custom C++/CUDA kernels, `fasterSNO` eliminates CPU-GPU data transfer bottlenecks. It achieves a 3x to 5x speedup over the original CPU-bound FA pipeline, allowing a 10-biological-second simulation and 5-fold cross-validated FA to run in roughly ~18 seconds on a 6GB VRAM GPU.
+By moving both the sparse spatial neural integration and the 64-bit Cross-Validated Factor Analysis algorithms entirely into custom C++/CUDA kernels, `FasterSNO` eliminates CPU-GPU data transfer bottlenecks. It achieves a significant speedup over the original CPU-bound pipeline, allowing a 10-biological-second simulation and 5-fold cross-validated FA to run in roughly ~18 seconds on a 6GB VRAM GPU.
+
+### Key Scientific Upgrades
+*   **True Spatial Topology:** Connections are generated based on 2D Euclidean distance using Gaussian probability profiles, matching the structural physics of the paper.
+*   **64-Bit Precision:** All Factor Analysis math (Expectation-Maximization) is executed in `Float64` to ensure numerical stability for ill-conditioned covariance matrices.
+*   **True 5-Fold Cross-Validation:** Latent dimensionality (`zDim`) is selected by maximizing the Log-Likelihood on held-out test data, preventing overfitting.
 
 ### Prerequisites
 
@@ -21,8 +26,7 @@ By moving both the sparse neural integration and the Expectation-Maximization (E
 *   NVIDIA GPU (tested within a 6GB VRAM constraint).
 *   Python 3.12+
 *   PyTorch (with CUDA support)
-*   Optuna
-*   Ninja (for compiling PyTorch C++ extensions)
+*   Optuna & Ninja
 
 ### Installation
 
@@ -34,42 +38,39 @@ By moving both the sparse neural integration and the Expectation-Maximization (E
    ```
 3. Install the required dependencies:
    ```bash
-   pip install torch optuna matplotlib numpy
+   pip install -r requirements.txt
    ```
 
 ### Usage
 
 **1. Define Targets**
-Edit `targets.json` to define the target biological metrics (e.g., V4 visual cortex data) and their respective penalty weights for the cost function.
+Edit `targets.json` to dynamically set the target biological metrics and their respective penalty weights.
 
 **2. Run the Optimizer**
-To begin searching the 9-dimensional parameter space for a network state that matches your targets:
+To begin searching the 11-dimensional parameter space:
 ```bash
-python optimizer.py
+./run_optimizer_bg.sh
 ```
-This will create a local SQLite database (`v4_optimization.db`) to safely persist all trial data. You can visualize the optimization history using Optuna's dashboard:
+This runs the optimizer in the background using `nohup`. You can monitor progress with:
+```bash
+tail -f optimization_run.log
+```
+Trials are safely persisted in `v4_optimization.db`. Visualize your results using the dashboard:
 ```bash
 optuna-dashboard sqlite:///v4_optimization.db
 ```
 
 **3. Verify and Plot Results**
-To run a 10-second simulation using the best parameters found by the optimizer and generate a detailed metrics report and raster plot:
+To generate a final metrics report and optimal raster plot:
 ```bash
 python verify_replica.py
 ```
-This script will output `final_metrics_report.txt` and `best_params_raster.png`.
-
-**4. Random Parameter Sweep**
-To test random biological parameters without Bayesian guidance:
-```bash
-python sweep.py
-```
 
 ### Architecture
-*   `simulation_core.py`: The unified PyTorch C++ extension that handles spatial 2D distance-based sparse CSR weight generation, feedforward Poisson drives, and the EIF CUDA integration kernels.
-*   `fa_module.py`: A custom C++ extension implementing the Factor Analysis EM algorithm and K-Fold cross-validation entirely in `Float64` on the GPU.
-*   `metrics.py`: Data binning, pairwise correlation, and FA metric extraction.
-*   `optimizer.py`: The Optuna-based dynamic objective function.
+*   `simulation_core.py`: Unified PyTorch C++ extension handling 2D distance-based sparse CSR weight generation and EIF CUDA integration.
+*   `fa_module.py`: Custom C++ extension implementing the FA EM algorithm and K-Fold cross-validation entirely in `Float64` on the GPU.
+*   `metrics.py`: Data binning, pairwise correlation, and population statistic extraction.
+*   `optimizer.py`: Optuna-based dynamic objective function class.
 
 ### Acknowledgments
-All core scientific methodologies, equations, and Factor Analysis approaches are derived from the original SNOPS paper and codebase. See `research-notes.md` for a detailed breakdown of the engineering decisions and known scientific compromises made during this port.
+All scientific methodologies are derived from the SNOPS paper and Dr. Shenghao Wu's repository. Detailed engineering trade-offs are documented in `research-notes.md`.
